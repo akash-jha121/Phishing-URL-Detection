@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Phishing URL Detector</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+         body {
+        background-image: url('/static/phisingimg.png');
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        font-family: Arial, sans-serif;
+        color:whitesmoke;
+        text-align: center;
+        padding-top: 50px;
+    }
+#result {
+    margin-top: 20px;
+    font-size: 22px;
+    font-weight: bold;
+    
+    padding: 10px 15px;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+        .safe {
+            background-color: #4CAF50; 
+            color: white;
+        }
+
+        .unsafe {
+            background-color:red; 
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+    <h1 style="color: whitesmoke; background-color: black;">Phishing URL Detector</h1>
+    <form id="urlForm">
+        <label for="url">Enter URL:</label>
+        <input type="text" id="url" name="url" required>
+        <button type="submit" class="button">Predict</button>
+
+    </form>
+
+    <div id="result"></div>
+
+<script>
+    document.getElementById("urlForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+    const urlInput = document.getElementById("url").value;
+    const formData = new FormData();
+    formData.append("url", urlInput);
+    const response = await fetch("/predict", {
+        method: "POST",
+        body: formData
+    });
+    const data = await response.json();
+    const resultDiv = document.getElementById("result");
+
+    resultDiv.classList.remove("safe", "unsafe");
+
+    const isPhishing = data.result === "This is a Phishing URL";
+    resultDiv.classList.add(isPhishing ? "unsafe" : "safe");
+    
+    let displayURL = urlInput.trim();
+    if (!/^https?:\/\//i.test(displayURL)) {
+        displayURL = "http://" + displayURL;
+    } 
+    const link = document.createElement("a");
+    link.href = displayURL;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = displayURL;
+    resultDiv.innerHTML = "";
+    resultDiv.appendChild(link);
+    resultDiv.appendChild(document.createElement("br"));
+    resultDiv.appendChild(document.createTextNode(data.result));
+    resultDiv.appendChild(document.createElement("br"));
+    resultDiv.appendChild(document.createTextNode("Detection Time: " + data["Detection time"]));
+});  
+    </script>
+</body>
+</html>
